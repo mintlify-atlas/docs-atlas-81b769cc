@@ -1,0 +1,462 @@
+---
+title: "TypeScript types, interfaces, and shape utilities"
+description: "Reference for Medal Forge TypeScript types: ShapeSettings, MedalSettings, WorkDocumentV1, MaterialPreset, plus resolveShapeSettings and getSvgColor utilities."
+---
+
+This page documents every type and interface exported from `lib/types.ts`, plus the shape-settings utility functions exported from `lib/shape-settings.ts`. These types and utilities are shared across the model builder, work document utilities, storage layer, and the editor UI.
+
+## Primitive types
+
+<AccordionGroup>
+  <Accordion title="MaterialId">
+
+```typescript
+export type MaterialId =
+  | "brushedGold"
+  | "agedSilver"
+  | "blackenedSteel"
+  | "copper"
+  | "whiteCeramic"
+  | "mattePolymer";
+```
+
+A union of string literals identifying the six built-in PBR material presets. You use a `MaterialId` anywhere you need to reference a material — in `ShapeSettings`, `MaterialPreset`, and `getMaterialPreset()`.
+
+| Value | Description |
+|---|---|
+| `"brushedGold"` | Warm gold with a brushed metallic finish |
+| `"agedSilver"` | Cool silver with a slightly worn surface |
+| `"blackenedSteel"` | Very dark steel with high roughness |
+| `"copper"` | Warm reddish-brown copper |
+| `"whiteCeramic"` | Near-white, low-metalness ceramic |
+| `"mattePolymer"` | Matte blue-grey polymer with no metalness |
+
+  </Accordion>
+</AccordionGroup>
+
+## Shape-settings utilities
+
+These functions are exported from `lib/shape-settings.ts` and are used internally by `buildMedalGroup` and the editor UI.
+
+### resolveShapeSettings()
+
+```typescript
+function resolveShapeSettings(
+  settings: MedalSettings,
+  pathIndex: number,
+  summary?: SvgPathSummary,
+): ShapeSettings
+```
+
+Merges the application defaults with any per-shape patch stored in `settings.shapeSettings` for the given `pathIndex`. The resolved color is derived from the SVG path summary using `getSvgColor` unless a `color` override is present in the patch.
+
+<ParamField path="settings" type="MedalSettings" required>
+  The full medal settings object. The function reads `settings.shapeSettings[String(pathIndex)]` to find any stored patch for this path.
+</ParamField>
+
+<ParamField path="pathIndex" type="number" required>
+  Zero-based index of the SVG path to resolve settings for.
+</ParamField>
+
+<ParamField path="summary" type="SvgPathSummary" default="undefined">
+  Optional parsed summary of the SVG element. When provided, the resolved fill or stroke color from the SVG is used as the base color before any patch override is applied.
+</ParamField>
+
+**Returns** `ShapeSettings` — a fully resolved, non-partial settings object. Every field is guaranteed to be present.
+
+The merge order is: `DEFAULT_SHAPE_SETTINGS` → `{ color: getSvgColor(summary) }` → `patch`.
+
+### getSvgColor()
+
+```typescript
+function getSvgColor(summary: SvgPathSummary | undefined): string
+```
+
+Extracts the best usable color from an SVG path summary. Returns the element's `fill` if it is a usable color (not `"none"`, not a `url(...)` reference), otherwise falls back to the `stroke`, and finally to the default gold color `#d8a737`.
+
+<ParamField path="summary" type="SvgPathSummary | undefined" required>
+  The SVG path summary to read colors from. Passing `undefined` returns the default fallback color.
+</ParamField>
+
+**Returns** `string` — a CSS color value.
+
+### getShapeLabel()
+
+```typescript
+function getShapeLabel(summary: SvgPathSummary | undefined): string
+```
+
+Returns the display label for a shape. Uses `summary.name` if it is a non-empty string; otherwise falls back to `"Shape N"` where N is `summary.pathIndex + 1`.
+
+<ParamField path="summary" type="SvgPathSummary | undefined" required>
+  The SVG path summary to derive a label from.
+</ParamField>
+
+**Returns** `string` — a human-readable label such as `"Badge outline"` or `"Shape 3"`.
+
+
+## Canvas and dome settings
+
+<AccordionGroup>
+  <Accordion title="CanvasSettings">
+
+```typescript
+export interface CanvasSettings {
+  backgroundColor: string;
+  showGrid: boolean;
+  showShadows: boolean;
+}
+```
+
+Controls the appearance of the 3D canvas background.
+
+| Field | Type | Description |
+|---|---|---|
+| `backgroundColor` | `string` | CSS hex color for the canvas background (e.g. `"#151a20"`) |
+| `showGrid` | `boolean` | Whether to render a reference grid on the canvas floor |
+| `showShadows` | `boolean` | Whether to render real-time drop shadows under the medal |
+
+  </Accordion>
+
+  <Accordion title="DomeSettings">
+
+```typescript
+export interface DomeSettings {
+  enabled: boolean;
+  depth: number;
+  radius: number;
+  segments: number;
+}
+```
+
+Controls the spherical dome deformation applied to the extruded medal geometry.
+
+| Field | Type | Description |
+|---|---|---|
+| `enabled` | `boolean` | Whether the dome effect is active |
+| `depth` | `number` | Maximum displacement height at the center of the dome, in scene units |
+| `radius` | `number` | Fraction of `modelSize` used as the dome's effective radius (0–1) |
+| `segments` | `number` | Tessellation resolution — more segments produce a smoother dome at a higher geometry cost |
+
+  </Accordion>
+</AccordionGroup>
+
+## Shape settings
+
+<AccordionGroup>
+  <Accordion title="ShapeSvgAdjustments">
+
+```typescript
+export interface ShapeSvgAdjustments {
+  circleRadius?: number;
+  rectWidth?: number;
+  rectHeight?: number;
+  rectCornerRadius?: number;
+}
+```
+
+Optional overrides that rewrite SVG element attributes before the SVG is parsed and extruded. All fields are optional — omitting a field leaves the original SVG attribute unchanged.
+
+| Field | Type | Description |
+|---|---|---|
+| `circleRadius` | `number \| undefined` | Override `r` on `<circle>` elements |
+| `rectWidth` | `number \| undefined` | Override `width` on `<rect>` elements, keeping the shape center-anchored |
+| `rectHeight` | `number \| undefined` | Override `height` on `<rect>` elements, keeping the shape center-anchored |
+| `rectCornerRadius` | `number \| undefined` | Override `rx` and `ry` on `<rect>` elements |
+
+  </Accordion>
+
+  <Accordion title="ShapeSettings">
+
+```typescript
+export interface ShapeSettings {
+  name?: string;
+  thickness: number;
+  bevel: number;
+  material: MaterialId;
+  color: string;
+  curveSegments: number;
+  bevelSegments: number;
+  depthSteps: number;
+  zOffset: number;
+  visible: boolean;
+  deleted: boolean;
+  windingMode: ShapeWindingMode;
+  svgAdjustments: ShapeSvgAdjustments;
+}
+```
+
+The full set of per-path settings that control how an individual SVG shape is extruded and rendered.
+
+| Field | Type | Description |
+|---|---|---|
+| `name` | `string \| undefined` | Display name shown in the editor panel |
+| `thickness` | `number` | Extrusion depth in scene units |
+| `bevel` | `number` | Bevel size applied to extruded edges, in scene units |
+| `material` | `MaterialId` | Which PBR material preset to use |
+| `color` | `string` | CSS hex color that overrides the preset's default color |
+| `curveSegments` | `number` | Number of curve subdivisions used when approximating curved paths |
+| `bevelSegments` | `number` | Number of bevel layers along the extruded edge |
+| `depthSteps` | `number` | Number of depth subdivisions along the extrusion axis |
+| `zOffset` | `number` | Manual Z-axis offset to layer shapes above or below each other |
+| `visible` | `boolean` | Whether the shape is rendered |
+| `deleted` | `boolean` | When `true`, the shape is excluded from parsing and rendering |
+| `windingMode` | `ShapeWindingMode` | How to interpret the path winding direction |
+| `svgAdjustments` | `ShapeSvgAdjustments` | Attribute overrides applied to the source SVG before parsing |
+
+  </Accordion>
+
+  <Accordion title="ShapeSettingsPatch">
+
+```typescript
+export type ShapeSettingsPatch = Partial<ShapeSettings>;
+```
+
+A partial version of `ShapeSettings`. This is the type stored in `MedalSettings.shapeSettings` — a map from path index string keys to patches that are merged on top of the default shape settings at render time.
+
+  </Accordion>
+</AccordionGroup>
+
+## Medal and scene settings
+
+<AccordionGroup>
+  <Accordion title="MedalSettings">
+
+```typescript
+export interface MedalSettings {
+  modelSize: number;
+  canvas: CanvasSettings;
+  dome: DomeSettings;
+  shapeSettings: Record<string, ShapeSettingsPatch>;
+}
+```
+
+The top-level settings object that describes the entire medal scene. This is stored inside `WorkDocumentV1.scene.settings`.
+
+| Field | Type | Description |
+|---|---|---|
+| `modelSize` | `number` | Diameter of the medal in scene units — controls the overall scale of the 3D model |
+| `canvas` | `CanvasSettings` | Background color and grid/shadow visibility |
+| `dome` | `DomeSettings` | Spherical dome deformation parameters |
+| `shapeSettings` | `Record<string, ShapeSettingsPatch>` | Per-path overrides keyed by path index (as a string, e.g. `"0"`, `"1"`) |
+
+  </Accordion>
+</AccordionGroup>
+
+## Work document types
+
+<AccordionGroup>
+  <Accordion title="WorkSvgAsset">
+
+```typescript
+export interface WorkSvgAsset {
+  id: string;
+  kind: WorkAssetKind;
+  mediaType: "image/svg+xml";
+  encoding: WorkAssetEncoding;
+  fileName: string;
+  text: string;
+  byteLength: number;
+  importedAt: string;
+}
+```
+
+Represents the SVG source file embedded inside a work document.
+
+| Field | Type | Description |
+|---|---|---|
+| `id` | `string` | Asset identifier, used to locate it via `source.primaryAssetId` |
+| `kind` | `WorkAssetKind` | Always `"source-svg"` |
+| `mediaType` | `"image/svg+xml"` | MIME type of the asset |
+| `encoding` | `WorkAssetEncoding` | Always `"utf-8"` |
+| `fileName` | `string` | Original filename of the imported SVG file |
+| `text` | `string` | Full SVG text content |
+| `byteLength` | `number` | Byte length of `text` when UTF-8 encoded |
+| `importedAt` | `string` | ISO 8601 timestamp of when the asset was imported |
+
+  </Accordion>
+
+  <Accordion title="WorkSnapshot">
+
+```typescript
+export interface WorkSnapshot {
+  id: string;
+  kind: "model-front-png";
+  mediaType: "image/png";
+  width: number;
+  height: number;
+  dataUrl: string;
+  sourceSignature: string;
+  createdAt: string;
+}
+```
+
+A PNG preview image of the rendered medal, stored as a data URL inside the work document.
+
+| Field | Type | Description |
+|---|---|---|
+| `id` | `string` | Unique identifier for the snapshot |
+| `kind` | `"model-front-png"` | Always `"model-front-png"` |
+| `mediaType` | `"image/png"` | MIME type |
+| `width` | `number` | Image width in pixels |
+| `height` | `number` | Image height in pixels |
+| `dataUrl` | `string` | Base64-encoded PNG as a data URL |
+| `sourceSignature` | `string` | Signature of the scene state when this snapshot was captured — used to detect stale previews |
+| `createdAt` | `string` | ISO 8601 timestamp of capture |
+
+  </Accordion>
+
+  <Accordion title="WorkDocumentV1">
+
+```typescript
+export interface WorkDocumentV1 {
+  kind: WorkDocumentKind;
+  schemaVersion: 1;
+  compatibility: {
+    minReaderSchemaVersion: 1;
+  };
+  app: {
+    name: "Medal Forge";
+    version: string;
+  };
+  document: {
+    id: string;
+    title: string;
+    createdAt: string;
+    updatedAt: string;
+  };
+  source: {
+    primaryAssetId: string;
+    assets: WorkSvgAsset[];
+  };
+  scene: {
+    unit: "scene-unit";
+    settings: MedalSettings;
+  };
+  preview: {
+    snapshot: WorkSnapshot | null;
+  };
+  editorState: {
+    selectedPathIndexes: number[];
+  };
+}
+```
+
+The versioned work document format. Every saved work in Medal Forge is a `WorkDocumentV1`.
+
+| Field | Type | Description |
+|---|---|---|
+| `kind` | `WorkDocumentKind` | Always `"com.medal-forge.work"` — identifies the document type |
+| `schemaVersion` | `1` | Schema version number — currently always `1` |
+| `compatibility.minReaderSchemaVersion` | `1` | Minimum schema version a reader must support |
+| `app.name` | `"Medal Forge"` | Application name |
+| `app.version` | `string` | Application version string (e.g. `"0.1.0"`) |
+| `document.id` | `string` | Unique work ID |
+| `document.title` | `string` | User-visible title |
+| `document.createdAt` | `string` | ISO 8601 creation timestamp |
+| `document.updatedAt` | `string` | ISO 8601 last-modified timestamp |
+| `source.primaryAssetId` | `string` | ID of the primary `WorkSvgAsset` |
+| `source.assets` | `WorkSvgAsset[]` | All embedded SVG assets |
+| `scene.unit` | `"scene-unit"` | Unit system — always `"scene-unit"` |
+| `scene.settings` | `MedalSettings` | The current medal scene settings |
+| `preview.snapshot` | `WorkSnapshot \| null` | Most recent preview snapshot, or `null` |
+| `editorState.selectedPathIndexes` | `number[]` | Indexes of currently selected SVG paths |
+
+  </Accordion>
+
+  <Accordion title="WorkDocument">
+
+```typescript
+export type WorkDocument = WorkDocumentV1;
+```
+
+A type alias for the current work document version. Use `WorkDocument` throughout the codebase rather than `WorkDocumentV1` directly so that future versioning is easier to introduce.
+
+  </Accordion>
+</AccordionGroup>
+
+## Summary and preset types
+
+<AccordionGroup>
+  <Accordion title="SavedWorkSummary">
+
+```typescript
+export interface SavedWorkSummary {
+  id: string;
+  title: string;
+  sourceFileName: string;
+  createdAt: string;
+  updatedAt: string;
+  schemaVersion: WorkDocument["schemaVersion"];
+  snapshotDataUrl: string | null;
+}
+```
+
+A lightweight summary of a saved work document, returned by `listSavedWorks()`. You use this type to populate the work browser without loading full document payloads (which include the raw SVG text).
+
+| Field | Type | Description |
+|---|---|---|
+| `id` | `string` | Work document ID |
+| `title` | `string` | User-visible title |
+| `sourceFileName` | `string` | Original filename of the imported SVG |
+| `createdAt` | `string` | ISO 8601 creation timestamp |
+| `updatedAt` | `string` | ISO 8601 last-modified timestamp |
+| `schemaVersion` | `WorkDocument["schemaVersion"]` | Schema version of the stored document |
+| `snapshotDataUrl` | `string \| null` | Preview image data URL, or `null` if no snapshot exists |
+
+  </Accordion>
+
+  <Accordion title="MaterialPreset">
+
+```typescript
+export interface MaterialPreset {
+  id: MaterialId;
+  name: string;
+  color: string;
+  metalness: number;
+  roughness: number;
+  previewSrc: string;
+}
+```
+
+Describes a built-in PBR material preset used when rendering medal shapes. The six concrete presets are defined in `lib/materials.ts`.
+
+| Field | Type | Description |
+|---|---|---|
+| `id` | `MaterialId` | Unique identifier for the preset |
+| `name` | `string` | Human-readable display name (e.g. `"Brushed gold"`) |
+| `color` | `string` | Default CSS hex color |
+| `metalness` | `number` | Three.js `MeshStandardMaterial` metalness (0–1) |
+| `roughness` | `number` | Three.js `MeshStandardMaterial` roughness (0–1) |
+| `previewSrc` | `string` | Path to the material swatch preview asset (e.g. `"/material-previews/brushed-gold.svg"`) |
+
+  </Accordion>
+
+  <Accordion title="SvgPathSummary">
+
+```typescript
+export interface SvgPathSummary {
+  pathIndex: number;
+  name: string;
+  tagName: string;
+  attributes: Record<string, string>;
+  fill: string;
+  stroke: string;
+  d: string;
+}
+```
+
+A parsed summary of a single SVG shape element. The model builder uses this to associate Three.js meshes with their source SVG paths.
+
+| Field | Type | Description |
+|---|---|---|
+| `pathIndex` | `number` | Zero-based index of this path in document order |
+| `name` | `string` | Display name derived from the element (e.g. `"Shape 1"`) |
+| `tagName` | `string` | SVG element tag (e.g. `"path"`, `"circle"`, `"rect"`) |
+| `attributes` | `Record<string, string>` | All parsed attributes of the SVG element |
+| `fill` | `string` | Resolved fill color |
+| `stroke` | `string` | Resolved stroke color |
+| `d` | `string` | Path data string (empty for non-`<path>` elements) |
+
+  </Accordion>
+</AccordionGroup>

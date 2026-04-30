@@ -1,0 +1,103 @@
+---
+title: "model-builder: buildMedalGroup and disposeObject3D"
+description: "Reference for buildMedalGroup() and disposeObject3D() — the core Three.js functions that convert SVG source and MedalSettings into a renderable 3D group."
+---
+
+`buildMedalGroup` and `disposeObject3D` are the two public functions exported from `lib/model-builder.ts`. They drive all 3D rendering in Medal Forge: `buildMedalGroup` converts raw SVG markup and a `MedalSettings` configuration into a `THREE.Group` ready to place in a scene, and `disposeObject3D` cleans up all GPU resources held by any Three.js object tree.
+
+---
+
+## buildMedalGroup
+
+```typescript
+function buildMedalGroup(
+  svgText: string,
+  settings: MedalSettings,
+  highlightedPathIndex: number | null = null
+): THREE.Group
+```
+
+Parses `svgText`, extrudes each visible shape into a `THREE.Mesh`, and returns them collected inside a named `THREE.Group`.
+
+### Parameters
+
+<ParamField path="svgText" type="string" required>
+  Raw SVG markup to parse and extrude. The string is fed directly to Three.js's `SVGLoader` after any per-shape SVG adjustments (circle radius, rect dimensions, corner radius) have been applied.
+</ParamField>
+
+<ParamField path="settings" type="MedalSettings" required>
+  Scene-wide settings that control the model. Includes `modelSize` (overall scale), `shapeSettings` (per-shape overrides such as material, thickness, visibility, and deletion state), and `dome` (optional spherical deformation config).
+</ParamField>
+
+<ParamField path="highlightedPathIndex" type="number | null" default="null">
+  When set to a path index, a yellow `THREE.LineSegments` edge outline is added as a child of that shape's mesh. Used to indicate hover or selection state in the editor.
+</ParamField>
+
+### Return value
+
+Returns a `THREE.Group` with `name` set to `"medal-forge-model"`. The group contains one `THREE.Mesh` per visible, non-deleted shape parsed from the SVG.
+
+### Behavior notes
+
+- Shapes whose resolved `ShapeSettings` have `visible: false` or `deleted: true` are skipped and produce no mesh.
+- If parsing produces zero shapes (e.g. the SVG is empty or all shapes are deleted), a gold `THREE.TorusGeometry` placeholder mesh is added to the group instead.
+- When `settings.dome.enabled` is `true`, each extruded geometry is tessellated and its vertices are displaced along the Z axis to simulate a spherical dome surface.
+- Each mesh receives a `userData.pathIndex` and `userData.pathName` matching its source SVG path.
+
+### Usage example
+
+```tsx
+import { Canvas } from "@react-three/fiber";
+import { OrbitControls, Environment } from "@react-three/drei";
+import { buildMedalGroup } from "./lib/model-builder";
+import type { MedalSettings } from "./lib/types";
+
+const svgText = `<svg>...</svg>`;
+const settings: MedalSettings = {
+  modelSize: 4.8,
+  canvas: { backgroundColor: "#151a20", showGrid: false, showShadows: false },
+  dome: { enabled: false, depth: 0.42, radius: 1, segments: 22 },
+  shapeSettings: {}
+};
+
+function MedalModel() {
+  const group = buildMedalGroup(svgText, settings);
+  return <primitive object={group} />;
+}
+```
+
+<Warning>
+  The returned group contains Three.js geometries and materials allocated on the GPU. Call `disposeObject3D` on the group when it is no longer needed to free those resources and avoid memory leaks.
+</Warning>
+
+---
+
+## disposeObject3D
+
+```typescript
+function disposeObject3D(object: THREE.Object3D): void
+```
+
+Recursively traverses an object tree and disposes all GPU resources held by meshes and line segments within it.
+
+### Parameters
+
+<ParamField path="object" type="THREE.Object3D" required>
+  The root Three.js object to dispose. The function walks the entire subtree, so passing a group disposes every descendant mesh and line segment.
+</ParamField>
+
+### Behavior
+
+For every node in the tree that is a `THREE.Mesh` or `THREE.LineSegments`, `disposeObject3D` calls:
+
+- `geometry.dispose()` — releases the geometry's buffer attributes from the GPU.
+- `material.dispose()` on each material — releases textures and shader programs. Handles both single-material and multi-material (array) assignments.
+
+### Cleanup example
+
+```tsx
+useEffect(() => {
+  const group = buildMedalGroup(svgText, settings);
+  return () => disposeObject3D(group);
+}, [svgText, settings]);
+```

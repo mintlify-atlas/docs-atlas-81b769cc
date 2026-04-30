@@ -1,133 +1,65 @@
 ---
-title: "Introduction"
-description: "Welcome to the new home for your documentation"
-icon: 'star'
+title: "Medal Forge documentation"
+description: "Medal Forge is a browser-based workbench that converts SVG designs into 3D medals and badges. Export GLB files or embed a React/Three.js component."
 ---
 
-## Setting up
+Medal Forge is a browser-based workbench that transforms uploaded SVG files into fully realized 3D medal and badge models. Upload any SVG, tune each shape's thickness, bevel, material, and color in real time, then export the result as a GLB file ready for use in any 3D pipeline — or embed it directly in a React app with a generated code snippet.
 
-Get your documentation site up and running in minutes.
-
-<Card
-  title="Start here"
-  icon="rocket"
-  href="/quickstart"
-  horizontal
->
-  Follow our three step quickstart guide.
-</Card>
-
-## Make it yours
-
-Design a docs site that looks great and empowers your users.
-
-<Columns cols={2}>
-  <Card
-    title="Edit locally"
-    icon="pen-to-square"
-    href="/development"
-  >
-    Edit your docs locally and preview them in real time.
+<CardGroup cols={2}>
+  <Card title="Introduction" icon="medal" href="/introduction">
+    Learn what Medal Forge is, how it works, and when to use it.
   </Card>
-  <Card
-    title="Customize your site"
-    icon="palette"
-    href="/essentials/settings"
-  >
-    Customize the design and colors of your site to match your brand.
+  <Card title="Quickstart" icon="rocket" href="/quickstart">
+    Get from SVG file to exported 3D model in under five minutes.
   </Card>
-    <Card
-    title="Set up navigation"
-    icon="map"
-    href="/essentials/navigation"
-  >
-    Organize your docs to help users find what they need and succeed with your product.
+  <Card title="Shape settings" icon="sliders" href="/guides/shape-settings">
+    Control thickness, bevel, material, color, and winding mode per shape.
   </Card>
-  <Card
-    title="API documentation"
-    icon="terminal"
-    href="/api-reference/introduction"
-  >
-    Auto-generate API documentation from OpenAPI specifications.
+  <Card title="Exporting" icon="download" href="/guides/exporting">
+    Export GLB files, work JSON, and embeddable React snippets.
   </Card>
-</Columns>
+</CardGroup>
 
-## Create beautiful pages
+## How it works
 
-Everything you need to create world-class documentation.
+<Steps>
+  <Step title="Upload your SVG">
+    Drag and drop an SVG file onto the workbench or click the upload area. Medal Forge parses every shape layer and renders them as extruded 3D geometry in the live preview.
+  </Step>
+  <Step title="Tune each layer">
+    Select one or more shapes from the layer list. Adjust thickness, bevel, material preset, color, and Z-offset. Changes appear instantly in the 3D viewport.
+  </Step>
+  <Step title="Apply effects">
+    Optionally enable the dome effect to give your medal a spherical curvature. Toggle grid and shadows in the canvas settings.
+  </Step>
+  <Step title="Export your model">
+    Click **Export GLB** to download a binary GLTF file, or copy the React/Three.js code snippet to embed the model directly in your app.
+  </Step>
+</Steps>
 
-<Columns cols={2}>
-  <Card
-    title="Write with MDX"
-    icon="pen-fancy"
-    href="/essentials/markdown"
-  >
-    Use MDX to style your docs pages.
-  </Card>
-  <Card
-    title="Code samples"
-    icon="code"
-    href="/essentials/code"
-  >
-    Add sample code to demonstrate how to use your product.
-  </Card>
-  <Card
-    title="Images"
-    icon="image"
-    href="/essentials/images"
-  >
-    Display images and other media.
-  </Card>
-  <Card
-    title="Reusable snippets"
-    icon="recycle"
-    href="/essentials/reusable-snippets"
-  >
-    Write once and reuse across your docs.
-  </Card>
-</Columns>
+## Explore the docs
 
-## Make your content agent ready
-
-Make your docs work for humans and AI agents alike.
-
-<Columns cols={2}>
-  <Card
-    title="Prompt component"
-    icon="robot"
-    href="/agent-ready/prompt"
-  >
-    Embed shareable AI prompts readers can copy or open in Cursor.
+<CardGroup cols={2}>
+  <Card title="Importing SVGs" icon="file-image" href="/guides/importing-svg">
+    Supported formats, drag-and-drop, and paste workflows.
   </Card>
-  <Card
-    title="Visibility"
-    icon="eye"
-    href="/agent-ready/visibility"
-  >
-    Show different content to humans and agents reading your docs.
+  <Card title="Layer selection" icon="layers" href="/guides/layer-selection">
+    Multi-select, range select, keyboard shortcuts, and visibility.
   </Card>
-  <Card
-    title="Contextual menu"
-    icon="bolt"
-    href="/agent-ready/contextual"
-  >
-    Give readers one-click access to Claude, ChatGPT, Cursor, and more.
+  <Card title="Materials" icon="paint-brush" href="/guides/materials">
+    The six built-in material presets and their physical properties.
   </Card>
-  <Card
-    title="AI coding tools"
-    icon="wand-magic-sparkles"
-    href="/ai-tools/claude-code"
-  >
-    Set up Claude Code, Cursor, or Windsurf with Mintlify's skill.
+  <Card title="Dome & canvas" icon="circle" href="/guides/dome-and-canvas">
+    Spherical curvature, grid, shadows, and background color.
   </Card>
-</Columns>
+  <Card title="Saving & storage" icon="floppy-disk" href="/guides/saving-and-storage">
+    Auto-save, IndexedDB storage, and workspace management.
+  </Card>
+  <Card title="Work document format" icon="file-code" href="/guides/work-document-format">
+    The portable JSON schema for sharing and archiving works.
+  </Card>
+</CardGroup>
 
-## Need inspiration?
+## Embed in your app
 
-<Card
-  title="See complete examples"
-  icon="stars"
-  href="https://mintlify.com/customers"
->
-  Browse our showcase of exceptional documentation sites.
-</Card>
+Medal Forge can export a ready-to-paste React component that renders your 3D model using `@react-three/fiber`. See the [code snippet reference](/reference/code-snippet) and [export model reference](/reference/export-model) for the full API.

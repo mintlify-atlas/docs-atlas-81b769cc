@@ -1,0 +1,73 @@
+---
+title: "materials: MATERIAL_PRESETS and getMaterialPreset"
+description: "Reference for the MATERIAL_PRESETS array and getMaterialPreset() — the six built-in PBR material presets (gold, silver, steel, copper, ceramic, polymer)."
+---
+
+`MATERIAL_PRESETS` and `getMaterialPreset` are exported from `lib/materials.ts` and provide the PBR material definitions used when rendering shapes. Each preset carries the color, metalness, and roughness values that are passed directly to `THREE.MeshStandardMaterial` when a mesh is created by `buildMedalGroup`.
+
+---
+
+## MaterialPreset
+
+The shape of each entry in `MATERIAL_PRESETS`, defined in `lib/types.ts`:
+
+```typescript
+export interface MaterialPreset {
+  id: MaterialId;
+  name: string;
+  color: string;
+  metalness: number;
+  roughness: number;
+  previewSrc: string;
+}
+```
+
+---
+
+## MATERIAL_PRESETS
+
+An ordered array of the six built-in presets. The first entry (`brushedGold`) is used as the default material throughout the application.
+
+| ID | Name | Color | Metalness | Roughness | Preview |
+|----|------|-------|-----------|-----------|---------|
+| `brushedGold` | Brushed gold | `#d8a737` | `1` | `0.34` | `/material-previews/brushed-gold.svg` |
+| `agedSilver` | Aged silver | `#b9bec2` | `1` | `0.42` | `/material-previews/aged-silver.svg` |
+| `blackenedSteel` | Blackened steel | `#1f2327` | `0.88` | `0.48` | `/material-previews/blackened-steel.svg` |
+| `copper` | Warm copper | `#b8693e` | `1` | `0.38` | `/material-previews/copper.svg` |
+| `whiteCeramic` | White ceramic | `#f1eee6` | `0.02` | `0.26` | `/material-previews/white-ceramic.svg` |
+| `mattePolymer` | Matte polymer | `#3b6a8f` | `0` | `0.72` | `/material-previews/matte-polymer.svg` |
+
+---
+
+## getMaterialPreset
+
+```typescript
+function getMaterialPreset(id: string): MaterialPreset
+```
+
+Looks up a preset by its `id` string and returns it. Falls back to the first preset (`brushedGold`) when no match is found.
+
+### Parameters
+
+<ParamField path="id" type="string" required>
+  The `MaterialId` string to look up (e.g. `"brushedGold"`, `"copper"`). Any string is accepted; an unrecognised value returns the `brushedGold` fallback rather than throwing.
+</ParamField>
+
+### Return value
+
+The matching `MaterialPreset`, or `MATERIAL_PRESETS[0]` (`brushedGold`) if `id` does not match any entry.
+
+### Source
+
+```typescript
+export function getMaterialPreset(id: string): MaterialPreset {
+  return (
+    MATERIAL_PRESETS.find((material) => material.id === id) ??
+    MATERIAL_PRESETS[0]
+  );
+}
+```
+
+<Note>
+  `metalness` and `roughness` map directly to the identically named properties on `THREE.MeshStandardMaterial`. The preset `color` is used as the base color for the material, but it can be overridden on a per-shape basis via `ShapeSettings.color`.
+</Note>

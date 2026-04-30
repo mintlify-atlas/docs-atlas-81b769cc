@@ -1,0 +1,59 @@
+---
+title: "Importing SVGs: upload, parse, and replace source files"
+description: "Drag-and-drop or browse to import an SVG into Medal Forge. Learn which SVG elements become layers, which are skipped, and how to replace the source file."
+---
+
+Medal Forge turns an SVG file into a 3D medal by extruding each shape element into its own layer. The first step in any project is importing your SVG source — either by dragging a file onto the canvas or by browsing for one on disk.
+
+## Uploading an SVG
+
+The **Input** section in the left sidebar contains the upload dropzone. You have two ways to bring in a file:
+
+- **Drag and drop** — drag an `.svg` file from your file manager or desktop directly onto the **Drop SVG here** area in the sidebar. The dropzone highlights when a drag is active to confirm it will accept the file.
+- **Click to browse** — click anywhere inside the **Drop SVG here** area (or the **or click to upload** label beneath it) to open the system file picker and select a file manually.
+
+The file input only accepts SVG files. The accepted types are:
+
+```
+.svg,image/svg+xml
+```
+
+Any other file type is silently rejected and the status bar shows "Only SVG uploads are accepted".
+
+## What happens after import
+
+Once Medal Forge reads the file it parses the SVG markup and builds a layer for every shape element it finds. The supported element types are:
+
+| Element | Description |
+|---|---|
+| `<path>` | Arbitrary vector path |
+| `<rect>` | Rectangle |
+| `<circle>` | Circle |
+| `<ellipse>` | Ellipse |
+| `<polygon>` | Closed polygon |
+| `<polyline>` | Open polyline |
+| `<line>` | Straight line segment |
+
+Each recognised element becomes one entry in the **Layers** list. Elements are processed in document order, so the layer at the top of the list corresponds to the first shape in the SVG source.
+
+### Shapes that are skipped
+
+Not every element in an SVG becomes a layer. Medal Forge skips any shape whose computed fill is `none` or whose `fillOpacity` is `0`. These shapes are invisible in the original SVG and would produce no geometry, so they are excluded from the layer list.
+
+## Replacing the current SVG
+
+You can import a new SVG at any time to replace the one already loaded. If you have unsaved changes, Medal Forge shows a confirm dialog before proceeding. You can choose to save first, discard your changes, or cancel the import entirely.
+
+Importing a replacement SVG resets all per-shape settings (thickness, bevel, material, etc.) back to their defaults because the new file may have a completely different set of paths.
+
+<Warning>
+Gradients (`url(...)` fills), masks, and SVG filters are not supported. Shapes that use these features cannot be parsed into a reliable color, so Medal Forge falls back to the default gold color (`#d8a737`) for those layers. Flatten or expand these fills in your vector editor before importing.
+</Warning>
+
+<Note>
+Very complex SVGs with hundreds of paths may render slowly in the 3D viewport because each path is extruded and tessellated individually. If performance is a concern, simplify or merge paths in a vector editor such as Inkscape or Figma before importing.
+</Note>
+
+<Tip>
+Medal Forge uses the following attributes — in priority order — as the display name for each layer: `data-name`, `inkscape:label`, `aria-label`, an inline `<title>` child element, then `id`. If none of these are present the layer falls back to "Shape N". Naming your SVG elements in your vector editor gives you meaningful layer names inside Medal Forge without any manual renaming.
+</Tip>

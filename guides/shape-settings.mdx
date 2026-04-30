@@ -1,0 +1,97 @@
+---
+title: "Per-shape 3D settings: thickness, bevel, material"
+description: "Adjust thickness, bevel, depth steps, material, color, winding mode, and Z-offset independently for each shape layer in Medal Forge."
+---
+
+Every shape layer in Medal Forge has its own set of 3D settings that control how the SVG path is extruded and rendered. Select one or more layers in the **Layers** panel and the **Shape** section in the right sidebar becomes active, showing the settings for the selected layer(s).
+
+## Shape settings reference
+
+| Property | Type | Default | Description |
+|---|---|---|---|
+| `thickness` | number | `0.17` | Extrusion depth in scene units. Higher values produce a taller, chunkier shape. Range: 0.02 – 1.6. |
+| `bevel` | number | `0.035` | Size of the chamfered edge around the top and bottom of the extruded shape. Set to `0` to disable beveling entirely. Range: 0 – 0.22. |
+| `bevelSegments` | number | `4` | Number of subdivisions in the bevel curve. Higher values produce a smoother, more rounded edge. Range: 0 – 12. |
+| `curveSegments` | number | `32` | Number of segments used to approximate curved path commands (arcs, beziers). Higher values produce smoother curves at the cost of more geometry. Range: 4 – 128. |
+| `depthSteps` | number | `1` | Number of subdivision steps along the extrusion depth axis. Increasing this is required for the dome deformation to look smooth on thick shapes. Range: 1 – 12. |
+| `zOffset` | number | `0` | Manual offset along the Z axis (depth direction) in scene units. Use this to push a layer forward or backward relative to other layers. Range: −1.2 – 1.2. Shown as **Height offset** in the UI. |
+| `material` | `MaterialId` | `"brushedGold"` | One of six built-in material presets (see [Material presets](#material-presets) below). |
+| `color` | hex string | SVG fill color | Overrides the fill color read from the SVG. Defaults to the original SVG fill color of the shape. |
+| `visible` | boolean | `true` | Whether the shape is rendered in the 3D viewport. Toggled via the eye icon in the **Layers** panel. |
+| `windingMode` | `"svg" \| "solidCw" \| "solidCcw"` | `"svg"` | Controls how SVG path winding is interpreted when creating 3D geometry (see [Winding mode](#winding-mode) below). |
+
+## Material presets
+
+The `material` property selects a physically-based material preset. The six built-in options are:
+
+| ID | Name |
+|---|---|
+| `brushedGold` | Brushed Gold |
+| `agedSilver` | Aged Silver |
+| `blackenedSteel` | Blackened Steel |
+| `copper` | Copper |
+| `whiteCeramic` | White Ceramic |
+| `mattePolymer` | Matte Polymer |
+
+Each preset defines metalness, roughness, and a base color. The **Color** field lets you tint the shape independent of the preset's base color.
+
+## Winding mode
+
+The `windingMode` property controls how Medal Forge interprets the winding direction of an SVG path when building the 3D mesh:
+
+- **`svg`** — uses the SVG fill rule (`evenodd` / `nonzero`) as Three.js's `SVGLoader` interprets it. This is the correct choice for most well-formed SVG paths and correctly punches holes in compound shapes (e.g. a letter "O" or a donut ring).
+- **`solidCw`** — forces clockwise winding, treating the entire path as a solid filled shape. Use this when a shape that should be solid renders with unexpected holes in `svg` mode.
+- **`solidCcw`** — forces counter-clockwise winding, also treating the path as solid. Use this as an alternative when `solidCw` does not resolve the hole issue.
+
+If a shape looks hollow when it should be solid, try switching between `solidCw` and `solidCcw`. If a shape is missing its holes (e.g. a letter with a counter), switch back to `svg`.
+
+## SVG adjustments
+
+For certain primitive element types, the **SVG** section appears in the right panel when exactly one layer of that type is selected. These controls let you adjust geometry dimensions without editing the SVG source file.
+
+### Circle (`<circle>`)
+
+| Field | Property | Description |
+|---|---|---|
+| Radius | `circleRadius` | Overrides the `r` attribute of the `<circle>` element. The circle is scaled from its original center point. |
+
+### Rectangle (`<rect>`)
+
+| Field | Property | Description |
+|---|---|---|
+| Width | `rectWidth` | Overrides the `width` attribute. The rectangle is resized symmetrically around its original center. |
+| Height | `rectHeight` | Overrides the `height` attribute. The rectangle is resized symmetrically around its original center. |
+| Corner radius | `rectCornerRadius` | Sets both `rx` and `ry` on the element to round the corners. Set to `0` for a sharp rectangle. |
+
+Each adjustment field has a **Reset** button that removes the override and restores the original SVG value.
+
+## Default settings
+
+The defaults applied to every new layer are:
+
+```typescript
+{
+  thickness: 0.17,
+  bevel: 0.035,
+  bevelSegments: 4,
+  curveSegments: 32,
+  depthSteps: 1,
+  zOffset: 0,
+  material: "brushedGold",
+  color: "#d8a737",   // replaced by the shape's actual SVG fill at runtime
+  visible: true,
+  deleted: false,
+  windingMode: "svg",
+  svgAdjustments: {},
+}
+```
+
+The `color` default shown above (`#d8a737`) is only used as a fallback when Medal Forge cannot extract a usable color from the SVG element (for example, when the fill is `none` or a `url(...)` gradient reference). In all other cases the shape's actual SVG fill color is used.
+
+<Tip>
+To revert the **Color** field back to the original SVG fill color, click the reset button (the circular arrow icon) next to the color swatch. This calls `getSvgColor` on the shape's path summary and removes the color override from the shape settings patch.
+</Tip>
+
+<Note>
+When multiple layers are selected, any change you make in the **Shape** panel applies to all of them simultaneously. For example, setting **Material** to **Aged Silver** with five layers selected updates all five layers at once. The displayed value reflects the settings of the first selected layer; if the selected layers have different values for a field, the first layer's value is shown.
+</Note>

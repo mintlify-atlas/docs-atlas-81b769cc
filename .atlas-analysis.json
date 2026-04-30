@@ -1,0 +1,99 @@
+{
+  "projectType": "frontend",
+  "projectName": "Medal Forge",
+  "projectDescription": "A browser-based workbench for turning SVG designs into 3D medal, badge, and metal plate models with GLB export.",
+  "theme": "willow",
+  "primaryColor": "#d8a737",
+  "lightColor": null,
+  "darkColor": null,
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Guide",
+        "groups": [
+          {
+            "group": "Getting Started",
+            "pages": [
+              "introduction",
+              "quickstart"
+            ]
+          },
+          {
+            "group": "Working with SVGs",
+            "pages": [
+              "guides/importing-svg",
+              "guides/layer-selection",
+              "guides/shape-settings"
+            ]
+          },
+          {
+            "group": "3D & Export",
+            "pages": [
+              "guides/materials",
+              "guides/dome-and-canvas",
+              "guides/exporting"
+            ]
+          },
+          {
+            "group": "Workspace",
+            "pages": [
+              "guides/saving-and-storage",
+              "guides/work-document-format"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Reference",
+        "groups": [
+          {
+            "group": "API Reference",
+            "pages": [
+              "reference/types",
+              "reference/model-builder",
+              "reference/materials",
+              "reference/work-document",
+              "reference/work-storage"
+            ]
+          },
+          {
+            "group": "Embed & Integrate",
+            "pages": [
+              "reference/code-snippet",
+              "reference/export-model"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "Upload or drag-and-drop SVG files to instantly generate layered 3D models",
+    "Per-shape controls for thickness, bevel, material, color, precision, and z-offset",
+    "Six built-in material presets: Brushed Gold, Aged Silver, Blackened Steel, Warm Copper, White Ceramic, and Matte Polymer",
+    "Dome deformation effect to give medals a spherical curvature",
+    "Multi-select layers with Cmd/Ctrl-click, Shift-click range, Cmd/Ctrl+A select-all, and Esc to clear",
+    "Export 3D models as GLB files or save work as portable JSON documents",
+    "Auto-save with IndexedDB local storage and full work document history",
+    "Copy embeddable React/Three.js code snippet for integrating the model in other apps",
+    "Interactive infinite canvas home screen with live 3D previews",
+    "Import/export entire workspace as a ZIP archive"
+  ],
+  "publicApiSurface": [
+    "buildMedalGroup(svgText, settings, highlightedPathIndex?) — builds a THREE.Group from SVG + MedalSettings",
+    "disposeObject3D(object) — recursively disposes Three.js geometries and materials",
+    "exportMedalGlb(svgText, settings) — returns a GLB Blob for download",
+    "downloadBlob(blob, filename) — triggers a file download in the browser",
+    "createCodeSnippet(svgText, settings) — generates an embeddable React/Three.js snippet",
+    "MATERIAL_PRESETS — array of MaterialPreset objects (id, name, color, metalness, roughness, previewSrc)",
+    "getMaterialPreset(id) — look up a material preset by id",
+    "resolveShapeSettings(settings, pathIndex, summary?) — merges defaults + per-shape patches",
+    "saveWorkDocument(document) — persists a WorkDocument to IndexedDB",
+    "getWorkDocument(id) — retrieves a WorkDocument from IndexedDB",
+    "listSavedWorks() — returns SavedWorkSummary[] sorted by updatedAt",
+    "deleteWorkDocument(id) — removes a work from IndexedDB",
+    "createWorkDocument(input) — creates a new WorkDocumentV1 object",
+    "isWorkDocument(value) — type guard for WorkDocument",
+    "WorkDocumentV1 — schema for the portable JSON work format (kind: com.medal-forge.work)"
+  ]
+}

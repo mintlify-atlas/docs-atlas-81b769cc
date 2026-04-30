@@ -1,0 +1,44 @@
+---
+title: "Dome effect and canvas settings in Medal Forge"
+description: "Apply a spherical dome curvature to your medal model and configure the canvas background color, grid overlay, and shadow rendering in Medal Forge."
+---
+
+Medal Forge lets you shape the overall silhouette of your medal with a dome curvature, and fine-tune the look of the 3D viewport with canvas settings. Both sets of controls live in the right panel of the workbench.
+
+## Dome effect
+
+The dome effect displaces every vertex of every shape upward along a spherical arc, transforming a flat medal into a domed coin or button shape. The displacement follows the surface of a sphere fitted to the chosen depth and radius — vertices near the center rise the most, and vertices at the outer edge of the dome base return to the original plane.
+
+### Enabling the dome
+
+Toggle the **Dome** switch in the right panel. The dome is disabled by default. When you enable it, all layers are immediately tessellated and displaced; toggling it off restores the flat geometry.
+
+### Dome settings
+
+| Setting | Default | Description |
+|---|---|---|
+| `depth` | `0.42` | Height of the dome peak in scene units. Larger values produce a more pronounced curve. |
+| `radius` | `1.0` | Width of the dome base as a fraction of `modelSize × 0.5`. At `1.0` the dome spans the full model footprint. |
+| `segments` | `22` | Tessellation density. Higher values subdivide the mesh into smaller triangles, producing a smoother arc. |
+
+<Note>
+  The dome uses Three.js `TessellateModifier` to subdivide the mesh before displacing vertices. Very high `segments` values create significantly more geometry and may slow rendering on complex models or lower-end hardware.
+</Note>
+
+<Tip>
+  The dome effect works best with simple, compact medal shapes. Complex SVG path outlines with many fine details can show visible faceting at low `segments` values. If you see stepped edges on a curved surface, try increasing `segments` incrementally until the result looks smooth.
+</Tip>
+
+## Canvas settings
+
+Canvas settings control the appearance of the 3D viewport. They do not affect the exported GLB model — they are purely a viewing aid.
+
+| Setting | Default | Description |
+|---|---|---|
+| **Background color** | `#151a20` | Sets the background color of the 3D viewport. The default is a very dark navy. Click the color swatch to open the browser's native color picker. |
+| **Grid** | Off | Shows a reference grid overlay in the viewport. Useful for checking alignment and scale. |
+| **Shadow** | Off | Enables cast and receive shadows for all meshes in the scene. Shadows add realism but increase rendering cost. |
+
+<Note>
+  Canvas settings are saved as part of the work document. When you reopen a saved work, the background color, grid visibility, and shadow state are all restored exactly as you left them.
+</Note>

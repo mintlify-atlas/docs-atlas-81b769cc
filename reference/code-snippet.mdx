@@ -1,0 +1,85 @@
+---
+title: "createCodeSnippet: generate embeddable React components"
+description: "Reference for createCodeSnippet() — generates a self-contained React/Three.js component from your SVG and MedalSettings for embedding in any React app."
+---
+
+`createCodeSnippet` from `lib/code-snippet.ts` produces a ready-to-paste React component that renders your medal model using `@react-three/fiber` and `@react-three/drei`.
+
+---
+
+## createCodeSnippet
+
+```typescript
+function createCodeSnippet(svgText: string, settings: MedalSettings): string
+```
+
+Serializes `svgText` and `settings` into a complete TypeScript/React module string that you can paste directly into any React project.
+
+### Parameters
+
+<ParamField path="svgText" type="string" required>
+  The raw SVG markup to embed in the generated snippet. The string is inlined verbatim using `String.raw` so that backticks in the SVG source are escaped automatically.
+</ParamField>
+
+<ParamField path="settings" type="MedalSettings" required>
+  The current scene settings. The full `MedalSettings` object is serialized as formatted JSON and inlined as a constant in the output module.
+</ParamField>
+
+### Return value
+
+Returns a `string` containing a complete TypeScript/React module. The module exports a single `MedalCanvas` component that renders the medal model inside a `<Canvas>`.
+
+### Template output
+
+The returned string has the following structure, with `svgText` and `settings` replaced by the actual values passed to `createCodeSnippet`:
+
+```tsx
+import { Canvas } from "@react-three/fiber";
+import { OrbitControls, Environment } from "@react-three/drei";
+import { buildMedalGroup } from "./lib/model-builder";
+
+const svgText = String.raw`<svg>...</svg>`;
+const settings = {
+  "modelSize": 4.8,
+  "canvas": { "backgroundColor": "#151a20", "showGrid": false, "showShadows": false },
+  "dome": { "enabled": false, "depth": 0.42, "radius": 1, "segments": 22 },
+  "shapeSettings": {}
+};
+
+function MedalModel() {
+  const group = buildMedalGroup(svgText, settings);
+  return <primitive object={group} />;
+}
+
+export function MedalCanvas() {
+  return (
+    <Canvas camera={{ position: [0, -7, 5], fov: 38 }}>
+      <ambientLight intensity={0.7} />
+      <directionalLight position={[4, -5, 8]} intensity={2} />
+      <MedalModel />
+      <Environment preset="city" />
+      <OrbitControls makeDefault />
+    </Canvas>
+  );
+}
+```
+
+<Note>
+  The snippet embeds the full SVG text and settings inline — it is self-contained and does not require any Medal Forge runtime or API call.
+</Note>
+
+<Tip>
+  The snippet imports `buildMedalGroup` from a relative path `./lib/model-builder` — copy that file from the Medal Forge source into your project, along with its dependencies: `lib/materials.ts`, `lib/shape-settings.ts`, `lib/svg-summary.ts`, `lib/types.ts`, and `lib/defaults.ts`.
+</Tip>
+
+---
+
+## Required dependencies
+
+Install the following npm packages in your project before using the generated component:
+
+| Package | Purpose |
+|---|---|
+| `three` | Three.js core — 3D rendering engine |
+| `@react-three/fiber` | React renderer for Three.js (`Canvas`) |
+| `@react-three/drei` | Helpers for `@react-three/fiber` (`OrbitControls`, `Environment`) |

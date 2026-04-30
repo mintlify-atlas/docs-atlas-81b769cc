@@ -1,0 +1,47 @@
+---
+title: "Material presets: gold, silver, steel, and more"
+description: "Medal Forge ships six PBR presets: Brushed Gold, Aged Silver, Blackened Steel, Warm Copper, and more. See metalness, roughness values, and how to apply each."
+---
+
+Medal Forge ships with six physically-based rendering (PBR) material presets. Each preset is a `MeshStandardMaterial` configuration that bundles a base color, a metalness value, and a roughness value. Together these three properties describe how a surface reflects and scatters light in the Three.js renderer.
+
+## Presets at a glance
+
+| Name | Base color | Metalness | Roughness |
+|---|---|---|---|
+| Brushed gold | `#d8a737` | 1.0 | 0.34 |
+| Aged silver | `#b9bec2` | 1.0 | 0.42 |
+| Blackened steel | `#1f2327` | 0.88 | 0.48 |
+| Warm copper | `#b8693e` | 1.0 | 0.38 |
+| White ceramic | `#f1eee6` | 0.02 | 0.26 |
+| Matte polymer | `#3b6a8f` | 0.0 | 0.72 |
+
+## How metalness and roughness work
+
+**Metalness** controls whether the surface behaves as a conductor (metal) or a dielectric (non-metal). A value of `1` means fully metallic — the surface reflects the environment with a tinted specular highlight and almost no diffuse component. A value of `0` means fully dielectric, producing a white specular and a more matte, diffuse base.
+
+**Roughness** controls how sharp or blurry the reflections are. A low roughness (e.g. `0.26` for White ceramic) produces mirror-like, well-defined reflections. A high roughness (e.g. `0.72` for Matte polymer) scatters light in many directions, producing a dull, soft surface.
+
+Both values map directly to the `metalness` and `roughness` properties of Three.js [`MeshStandardMaterial`](https://threejs.org/docs/#api/en/materials/MeshStandardMaterial).
+
+## Color is separate from the material
+
+The base colors listed in the table above are the preset defaults, but they are overridden by the **per-shape color** setting for each layer. The material preset controls the physical response of the surface (metalness, roughness); the color you set on a shape in the right panel is always what appears in the final render. This lets you, for example, apply the Brushed gold surface finish to a shape painted in any color you choose.
+
+## Applying a material to a layer
+
+<Steps>
+  <Step title="Select the layer">
+    Click the layer you want to style in the layer list on the left side of the workbench.
+  </Step>
+  <Step title="Choose a material">
+    In the right panel, open the **Material** dropdown. Each option shows a preview swatch pulled from `/public/material-previews/` — a small sphere rendered to reflect each preset's color, metalness, and roughness.
+  </Step>
+  <Step title="Adjust the color (optional)">
+    Use the **Color** picker directly below the material dropdown to override the base color while keeping the physical properties of the chosen material.
+  </Step>
+</Steps>
+
+<Tip>
+  To apply the same material to every layer at once, press **Cmd+A** (macOS) or **Ctrl+A** (Windows/Linux) to select all layers, then choose a material from the dropdown. The selection is applied to all selected layers simultaneously.
+</Tip>

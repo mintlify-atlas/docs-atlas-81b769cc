@@ -1,0 +1,117 @@
+---
+title: "export-model: exportMedalGlb and downloadBlob"
+description: "Reference for exportMedalGlb() and downloadBlob() — build a Three.js scene from SVG, encode it as binary GLB, and trigger a browser file download."
+---
+
+`exportMedalGlb` and `downloadBlob` from `lib/export-model.ts` handle the full GLB export pipeline — building the 3D model, encoding it as binary GLTF, and downloading it.
+
+---
+
+## exportMedalGlb
+
+```typescript
+async function exportMedalGlb(
+  svgText: string,
+  settings: MedalSettings,
+): Promise<Blob>
+```
+
+Builds a Three.js scene from the given SVG and settings, encodes it as a binary GLB file, and returns the result as a `Blob`.
+
+### Parameters
+
+<ParamField path="svgText" type="string" required>
+  Raw SVG markup to build the medal model from. Passed directly to `buildMedalGroup`.
+</ParamField>
+
+<ParamField path="settings" type="MedalSettings" required>
+  Scene settings that control the model's size, materials, dome, and per-shape overrides. Passed directly to `buildMedalGroup`.
+</ParamField>
+
+### Return value
+
+Returns a `Promise<Blob>` that resolves to a `model/gltf-binary` Blob containing binary GLTF (GLB) data.
+
+### Behavior
+
+<Steps>
+  <Step title="Build the scene">
+    Calls `buildMedalGroup(svgText, settings)` to construct the Three.js object graph.
+  </Step>
+  <Step title="Encode as GLB">
+    Uses `THREE.GLTFExporter` with `{ binary: true }` to encode the group. The exporter callback wraps the resulting `ArrayBuffer` in a `Blob` with type `model/gltf-binary`.
+  </Step>
+  <Step title="Free GPU memory">
+    Calls `disposeObject3D(group)` in a `finally` block to release all geometry and material resources regardless of whether export succeeded or failed.
+  </Step>
+</Steps>
+
+### Source
+
+```typescript
+export async function exportMedalGlb(
+  svgText: string,
+  settings: MedalSettings,
+): Promise<Blob> {
+  const group = buildMedalGroup(svgText, settings);
+  const exporter = new GLTFExporter();
+
+  try {
+    return await new Promise<Blob>((resolve, reject) => {
+      exporter.parse(
+        group,
+        (result) => {
+          if (result instanceof ArrayBuffer) {
+            resolve(new Blob([result], { type: "model/gltf-binary" }));
+            return;
+          }
+          resolve(new Blob([JSON.stringify(result, null, 2)], { type: "model/gltf+json" }));
+        },
+        (error) => reject(error),
+        { binary: true },
+      );
+    });
+  } finally {
+    disposeObject3D(group);
+  }
+}
+```
+
+<Note>
+  This function is `"use client"` — it must run in a browser environment, not on a server. `THREE.GLTFExporter` and `URL.createObjectURL` are both browser-only APIs.
+</Note>
+
+---
+
+## downloadBlob
+
+```typescript
+function downloadBlob(blob: Blob, filename: string): void
+```
+
+Triggers a file download in the browser for the given `Blob`.
+
+### Parameters
+
+<ParamField path="blob" type="Blob" required>
+  The `Blob` to download. Typically the value resolved by `exportMedalGlb`.
+</ParamField>
+
+<ParamField path="filename" type="string" required>
+  The filename the browser will use when saving the file, including extension (e.g. `"my-medal.glb"`).
+</ParamField>
+
+### Behavior
+
+Creates a temporary `<a>` element, sets its `href` to an object URL created from `blob` and its `download` attribute to `filename`, appends it to `document.body`, programmatically clicks it, then removes the element and revokes the object URL.
+
+### Usage example
+
+```typescript
+const blob = await exportMedalGlb(svgText, settings);
+downloadBlob(blob, "my-medal.glb");
+```
+
+<Tip>
+  Combine `exportMedalGlb` and `downloadBlob` as shown above for a one-shot "export and download" workflow. Wrap the call in a `try/catch` block since export can fail if the SVG is invalid or the Three.js scene cannot be constructed.
+</Tip>

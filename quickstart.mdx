@@ -1,81 +1,79 @@
 ---
-title: "Quickstart"
-description: "Start building awesome documentation in minutes"
-icon: 'rocket'
+title: "Quickstart: from SVG to exported GLB in 5 minutes"
+description: "Install Medal Forge locally, import your first SVG file, tune shape settings in the workbench, and download a GLB model — all in under five minutes."
 ---
 
-## Get started in three steps
+This guide walks you through every step from a blank browser tab to a downloaded GLB file. The whole process takes under five minutes.
 
-Get your documentation site running locally and make your first customization.
+## Prerequisites
 
-### Step 1: Set up your local environment
+- A modern browser (Chrome, Edge, or Firefox recommended)
+- An SVG file to import — a logo, icon, or badge design works well
 
-<AccordionGroup>
-  <Accordion icon="copy" title="Clone your docs locally">
-    During the onboarding process, you created a GitHub repository with your docs content if you didn't already have one. You can find a link to this repository in your [dashboard](https://dashboard.mintlify.com).
-    
-    To clone the repository locally so that you can make and preview changes to your docs, follow the [Cloning a repository](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository) guide in the GitHub docs.
-  </Accordion>
-  <Accordion icon="rectangle-terminal" title="Start the preview server">
-    1. Install the Mintlify CLI: `npm i -g mint`
-    2. Navigate to your docs directory and run: `mint dev`
-    3. Open `http://localhost:3000` to see your docs live!
-    
-    <Tip>Your preview updates automatically as you edit files.</Tip>
-  </Accordion>
-</AccordionGroup>
+## Steps
 
-### Step 2: Deploy your changes
+<Steps>
+  <Step title="Run Medal Forge locally">
+    Clone the repository, install dependencies, and start the dev server:
 
-<AccordionGroup>
-  <Accordion icon="github" title="Install our GitHub app">
-    Install the Mintlify GitHub app from your [dashboard](https://dashboard.mintlify.com/settings/organization/github-app).
-    
-    Our GitHub app automatically deploys your changes to your docs site, so you don't need to manage deployments yourself.
-</Accordion>
-<Accordion icon="palette" title="Update your site name and colors">
-    For a first change, let's update the name and colors of your docs site.
+    ```bash
+    npm install
+    npm run dev
+    ```
 
-    1. Open `docs.json` in your editor.
-    2. Change the `"name"` field to your project name.
-    3. Update the `"colors"` to match your brand.
-    4. Save and see your changes instantly at `http://localhost:3000`.
+    Open [http://localhost:3000](http://localhost:3000) in your browser. You'll see the Medal Forge home screen.
+  </Step>
+  <Step title="The home screen">
+    The home screen is an infinite canvas workspace. Your saved works appear as cards arranged in a grid. You can pan the canvas by clicking and dragging on the background, and zoom with your scroll wheel or trackpad pinch gesture.
 
-    <Tip>Try changing the primary color to see an immediate difference!</Tip>
-  </Accordion>
-</AccordionGroup>
+    Each work card shows a thumbnail of the 3D model, the file name, and the last-modified date.
+  </Step>
+  <Step title="Create a new work or open an existing one">
+    To start fresh, click the **New** button in the top-right corner. A new untitled work opens in the workbench editor.
 
-### Step 3: Go live
+    To continue a previous work, click its card on the home canvas.
+  </Step>
+  <Step title="Import your SVG">
+    Inside the workbench, drag your SVG file onto the central upload area, or click **Upload** in the toolbar to open the file picker. Medal Forge parses the file and immediately renders every shape as extruded 3D geometry in the viewport.
+  </Step>
+  <Step title="Select a layer">
+    The left sidebar lists every shape found in your SVG. Click any row to select that shape and highlight it in the 3D viewport. The shape name, tag, and fill color are shown in each row.
 
-<Accordion icon="rocket" title="Publish your docs">
-  1. Commit and push your changes.
-  2. Your docs will update and be live in moments!
-</Accordion>
+    Use Cmd/Ctrl-click to add more shapes to your selection, or Shift-click to select a contiguous range.
+  </Step>
+  <Step title="Adjust settings in the right panel">
+    With one or more layers selected, the right settings panel becomes active. You can change:
+
+    - **Thickness** — how far the shape is extruded along the Z-axis
+    - **Bevel** — the size of the rounded edge at the front and back of the extrusion
+    - **Material** — one of six built-in presets (Brushed gold, Aged silver, Blackened steel, Warm copper, White ceramic, Matte polymer)
+    - **Color** — override the shape's color or reset it to the original SVG fill
+
+    All changes update the 3D preview instantly.
+  </Step>
+  <Step title="Export the GLB">
+    When you're happy with the model, click **Export GLB** in the toolbar. The browser downloads a `.glb` file containing your complete 3D model, ready to open in Blender, Unity, or any other tool that accepts binary GLTF.
+  </Step>
+</Steps>
+
+<Tip>
+  Press Cmd/Ctrl+A to select all layers at once. This lets you apply a single material preset or thickness value to every shape in one step — useful for quickly setting a baseline before fine-tuning individual layers.
+</Tip>
+
+<Note>
+  Medal Forge automatically saves your work to IndexedDB after a short idle period. You don't need to click **Save** manually — your changes persist across page reloads and browser restarts, as long as you're using the same browser and device.
+</Note>
 
 ## Next steps
 
-Now that you have your docs running, explore these key features:
-
 <CardGroup cols={2}>
-
-<Card title="Write Content" icon="pen-to-square" href="/essentials/markdown">
-  Learn MDX syntax and start writing your documentation.
-</Card>
-
-<Card title="Customize style" icon="palette" href="/essentials/settings">
-  Make your docs match your brand perfectly.
-</Card>
-
-<Card title="Add code examples" icon="square-code" href="/essentials/code">
-  Include syntax-highlighted code blocks.
-</Card>
-
-<Card title="API documentation" icon="code" href="/api-reference/introduction">
-  Auto-generate API docs from OpenAPI specs.
-</Card>
-
+  <Card title="Shape settings" icon="sliders" href="/guides/shape-settings">
+    Full reference for thickness, bevel, Z-offset, winding mode, and curve precision.
+  </Card>
+  <Card title="Materials" icon="paint-brush" href="/guides/materials">
+    The six built-in material presets and their physical properties.
+  </Card>
+  <Card title="Exporting" icon="download" href="/guides/exporting">
+    GLB export, work JSON, and the embeddable React/Three.js code snippet.
+  </Card>
 </CardGroup>
-
-<Note>
-  **Need help?** See our [full documentation](https://mintlify.com/docs) or join our [community](https://mintlify.com/community).
-</Note>

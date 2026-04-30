@@ -1,0 +1,260 @@
+---
+title: "work-document: creating and validating work documents"
+description: "Reference for createWorkDocument(), isWorkDocument(), normalizeWorkDocument(), and related utilities for building and validating Medal Forge JSON work files."
+---
+
+The utilities in `lib/work-document.ts` create, validate, and normalize the portable work document format used by Medal Forge. They handle everything from generating unique IDs to deep-merging settings with defaults, and are the authoritative source for constructing well-formed `WorkDocument` objects.
+
+<Note>
+  All functions in this module are isomorphic — there is no `"use client"` directive. They can be used in server components, API routes, workers, or any browser context without restriction.
+</Note>
+
+## Constants
+
+```typescript
+export const WORK_DOCUMENT_KIND = "com.medal-forge.work";
+export const WORK_DOCUMENT_SCHEMA_VERSION = 1;
+export const WORK_APP_VERSION = "0.1.0";
+```
+
+| Constant | Value | Description |
+|---|---|---|
+| `WORK_DOCUMENT_KIND` | `"com.medal-forge.work"` | Discriminant field written to every work document's `kind` property. Used by `isWorkDocument()` to identify Medal Forge files. |
+| `WORK_DOCUMENT_SCHEMA_VERSION` | `1` | Current schema version. Stored as `schemaVersion` and checked during validation. |
+| `WORK_APP_VERSION` | `"0.1.0"` | Application version string written to `app.version` in new documents. |
+
+---
+
+## createWorkId()
+
+```typescript
+function createWorkId(): string
+```
+
+Generates a unique identifier for a new work document. Uses `crypto.randomUUID()` when available; falls back to `work_<timestamp>_<random>` in environments where the Web Crypto API is not present.
+
+No parameters.
+
+**Returns** `string` — a UUID (e.g. `"d4a3f8c1-..."`) or a fallback string (e.g. `"work_1714500000000_k3j2m"`).
+
+---
+
+## getPrimarySvgAsset()
+
+```typescript
+function getPrimarySvgAsset(document: WorkDocument): WorkSvgAsset
+```
+
+Finds and returns the primary SVG asset from a work document.
+
+<ParamField path="document" type="WorkDocument" required>
+  The work document to inspect. The function looks up the asset whose `id` matches `document.source.primaryAssetId`; if no match is found it falls back to `document.source.assets[0]`.
+</ParamField>
+
+**Returns** `WorkSvgAsset` — the primary SVG asset.
+
+**Throws** `Error` with message `"Work document has no SVG source asset"` if `source.assets` is empty.
+
+---
+
+## createWorkDocument()
+
+```typescript
+function createWorkDocument(input: CreateWorkDocumentInput): WorkDocument
+```
+
+The main factory for creating a well-formed `WorkDocument`. Internally calls `normalizeMedalSettings()` on the provided `settings` before storing them in `scene.settings`, so the returned document always has fully populated canvas, dome, and shapeSettings fields.
+
+### Input interface
+
+```typescript
+interface CreateWorkDocumentInput {
+  id: string;
+  title: string;
+  createdAt: string;
+  updatedAt: string;
+  fileName: string;
+  svgText: string;
+  settings: MedalSettings;
+  selectedPathIndexes: number[];
+  snapshot?: WorkSnapshot | null;
+}
+```
+
+<ParamField path="id" type="string" required>
+  Unique identifier for the document. Use `createWorkId()` to generate one.
+</ParamField>
+
+<ParamField path="title" type="string" required>
+  User-visible title for the work (e.g. `"My Medal"`).
+</ParamField>
+
+<ParamField path="createdAt" type="string" required>
+  ISO 8601 timestamp of when the work was first created (e.g. `"2024-05-01T12:00:00.000Z"`).
+</ParamField>
+
+<ParamField path="updatedAt" type="string" required>
+  ISO 8601 timestamp of the most recent update. Set to the same value as `createdAt` when creating a new document.
+</ParamField>
+
+<ParamField path="fileName" type="string" required>
+  Original filename of the imported SVG file (e.g. `"badge.svg"`). Stored on the embedded `WorkSvgAsset`.
+</ParamField>
+
+<ParamField path="svgText" type="string" required>
+  Full SVG source text. Stored verbatim as the asset's `text` field; byte length is computed automatically.
+</ParamField>
+
+<ParamField path="settings" type="MedalSettings" required>
+  Medal scene settings. Passed through `normalizeMedalSettings()` before storage, so partial settings are safe to provide.
+</ParamField>
+
+<ParamField path="selectedPathIndexes" type="number[]" required>
+  Array of zero-based path indexes that are currently selected in the editor.
+</ParamField>
+
+<ParamField path="snapshot" type="WorkSnapshot | null" default="null">
+  Optional preview snapshot. Defaults to `null` when omitted.
+</ParamField>
+
+**Returns** `WorkDocument` — a fully constructed, normalized work document.
+
+---
+
+## isWorkDocument()
+
+```typescript
+function isWorkDocument(value: unknown): value is WorkDocument
+```
+
+Type guard that validates whether an arbitrary value is a well-formed `WorkDocument`. Checks all required fields including `kind`, `schemaVersion`, `app.name`, asset structure, and settings shape.
+
+<ParamField path="value" type="unknown" required>
+  Any value to test — typically parsed JSON from an import or IndexedDB retrieval.
+</ParamField>
+
+**Returns** `boolean` — `true` if the value matches the full `WorkDocument` schema; `false` for anything that does not, including `null`, non-objects, partial documents, and documents with an unrecognized `kind` or `schemaVersion`.
+
+Use `isWorkDocument()` as a validation gate before passing imported JSON to other utilities:
+
+```typescript
+const parsed = JSON.parse(fileText);
+if (!isWorkDocument(parsed)) {
+  throw new Error("Invalid or unrecognized work document");
+}
+const normalized = normalizeWorkDocument(parsed);
+```
+
+---
+
+## normalizeWorkDocument()
+
+```typescript
+function normalizeWorkDocument(document: WorkDocument): WorkDocument
+```
+
+Fills in any missing fields in an existing work document with safe defaults. Specifically:
+
+- Passes `scene.settings` through `normalizeMedalSettings()` to ensure `canvas`, `dome`, and `shapeSettings` are all present.
+- Sets `preview` to `{ snapshot: null }` if the field is missing.
+
+<ParamField path="document" type="WorkDocument" required>
+  The document to normalize. The original object is not mutated — a new object is returned.
+</ParamField>
+
+**Returns** `WorkDocument` — a new document object with all optional fields populated.
+
+---
+
+## normalizeMedalSettings()
+
+```typescript
+function normalizeMedalSettings(settings: MedalSettings): MedalSettings
+```
+
+Deep-merges the provided settings with `DEFAULT_SETTINGS`, ensuring that `canvas`, `dome`, and `shapeSettings` are always present. Individual sub-object fields are also merged so partial overrides do not wipe out unset defaults.
+
+<ParamField path="settings" type="MedalSettings" required>
+  The settings object to normalize. May be partial — any missing top-level or sub-object fields are filled from `DEFAULT_SETTINGS`.
+</ParamField>
+
+**Returns** `MedalSettings` — a new settings object with all fields populated.
+
+The merge strategy is:
+- Top-level fields: spread `DEFAULT_SETTINGS`, then spread `settings`.
+- `canvas`: spread `DEFAULT_SETTINGS.canvas`, then spread `settings.canvas`.
+- `dome`: spread `DEFAULT_SETTINGS.dome`, then spread `settings.dome`.
+- `shapeSettings`: use `settings.shapeSettings` if present, otherwise fall back to `{}`.
+
+---
+
+## createWorkPayloadSignature()
+
+```typescript
+function createWorkPayloadSignature(input: WorkPayloadSignatureInput): string
+```
+
+Serializes the document's mutable content to a JSON string. Compare two signatures to detect unsaved changes.
+
+### Input interface
+
+```typescript
+export interface WorkPayloadSignatureInput {
+  title: string;
+  fileName: string;
+  svgText: string;
+  settings: MedalSettings;
+  selectedPathIndexes: number[];
+}
+```
+
+<ParamField path="title" type="string" required>
+  Current document title.
+</ParamField>
+
+<ParamField path="fileName" type="string" required>
+  Filename of the primary SVG asset.
+</ParamField>
+
+<ParamField path="svgText" type="string" required>
+  Full SVG source text.
+</ParamField>
+
+<ParamField path="settings" type="MedalSettings" required>
+  Current medal settings.
+</ParamField>
+
+<ParamField path="selectedPathIndexes" type="number[]" required>
+  Currently selected path indexes.
+</ParamField>
+
+**Returns** `string` — a JSON string covering `document.title`, `source.fileName`, `source.svgText`, `scene.settings`, and `editorState.selectedPathIndexes`. If the signature differs from the last saved signature, the document has unsaved changes.
+
+---
+
+## createWorkSnapshotSourceSignature()
+
+```typescript
+function createWorkSnapshotSourceSignature(input: WorkSnapshotSignatureInput): string
+```
+
+Serializes the fields that affect the rendered preview image to a JSON string. Compare against `WorkSnapshot.sourceSignature` to decide whether the current snapshot is stale and a new one should be captured.
+
+### Input interface
+
+```typescript
+export interface WorkSnapshotSignatureInput {
+  svgText: string;
+  settings: MedalSettings;
+}
+```
+
+<ParamField path="svgText" type="string" required>
+  Full SVG source text.
+</ParamField>
+
+<ParamField path="settings" type="MedalSettings" required>
+  Current medal settings.
+</ParamField>
+
+**Returns** `string` — a JSON string covering `source.svgText` and `scene.settings`. If this differs from the stored `snapshot.sourceSignature`, the existing snapshot no longer reflects the current scene and should be regenerated.

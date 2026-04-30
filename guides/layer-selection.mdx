@@ -1,0 +1,59 @@
+---
+title: "Selecting, renaming, and deleting shape layers"
+description: "Use single-click, multi-select, Shift-range, and Cmd/Ctrl+A to select layers in Medal Forge, and control visibility, rename, or delete shapes."
+---
+
+The **Layers** panel in the left sidebar lists every shape imported from your SVG. Selecting one or more layers focuses the right-side **Shape** panel on those layers so you can adjust their 3D settings. Medal Forge supports several selection modes and keyboard shortcuts to make it easy to work with many layers at once.
+
+## Selection methods
+
+| Action | Result |
+|---|---|
+| Click a layer | Selects that layer and deselects everything else |
+| **Cmd/Ctrl** + click | Toggles a layer into or out of the current selection without affecting other selected layers |
+| **Shift** + click | Selects a contiguous range from the last-clicked (anchor) layer to the clicked layer |
+| **Cmd/Ctrl** + **A** | Selects all visible (non-deleted) layers at once |
+| **Esc** | Clears the entire selection |
+
+When you use **Shift** + click after a range selection, Medal Forge extends or contracts the range from the original anchor point — the first layer you clicked before starting the shift-selection.
+
+## Toggling layer visibility
+
+Each layer row has an eye icon on the right. Clicking the **eye icon** toggles the layer's `visible` property:
+
+- **Eye open** — the shape is rendered in the 3D viewport.
+- **Eye closed** — the shape is hidden from the viewport but still present in the layer list.
+
+Toggling visibility does not delete the layer. You can restore a hidden layer at any time by clicking the eye icon again.
+
+## Deleting layers
+
+With one or more layers selected, press **Delete** or **Backspace** to remove them from the layer list. Deleted layers are marked with `deleted: true` in the shape settings and immediately disappear from the **Layers** panel and the 3D viewport.
+
+<Note>
+Deleting a layer does not modify the SVG source file. Medal Forge tracks deletion through the `deleted` flag in shape settings, which is stored in the work document. If you import the same SVG again (or export a work JSON and re-import it), previously deleted layers will not automatically reappear — deletion state is part of the saved work. However, if you replace the SVG with a new file, all shape settings (including `deleted` flags) are reset and every shape from the new file will appear as a fresh layer.
+</Note>
+
+## Hover highlighting
+
+Hovering your mouse over a layer row highlights the corresponding shape in the 3D viewport with a yellow outline. This makes it easy to identify which part of the model a layer controls before you select it.
+
+## Renaming a layer
+
+<Steps>
+  <Step title="Select the layer">
+    Click the layer you want to rename so it becomes selected (highlighted in the layer list).
+  </Step>
+  <Step title="Click the layer name">
+    With the layer already selected, click its name text. The name field switches to an inline text input.
+  </Step>
+  <Step title="Edit and commit">
+    Type the new name, then press **Enter** or click away to commit. Press **Esc** to cancel and revert to the previous name.
+  </Step>
+</Steps>
+
+If you clear the name field and commit, Medal Forge resets the layer name back to the value derived from the SVG element's `id`, `inkscape:label`, or positional fallback (e.g. "Shape 3").
+
+<Tip>
+When multiple layers are selected, any setting change you make in the **Shape** panel on the right applies to all selected layers simultaneously. This is useful for setting the same material or thickness across an entire group of shapes at once. Note that layer renaming is only available when exactly one layer is selected.
+</Tip>

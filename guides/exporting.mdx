@@ -1,0 +1,102 @@
+---
+title: "Exporting GLB models, work JSON, and code snippets"
+description: "Export your Medal Forge design as a binary GLB for 3D tools, a portable JSON archive to reload later, or a React/Three.js snippet for embedding."
+---
+
+Medal Forge gives you three ways to get your design out of the editor: a binary GLB for use in 3D tools and engines, a portable JSON archive you can reload later, and a self-contained React/Three.js code snippet for embedding the medal in a web app.
+
+<Tabs>
+  <Tab title="GLB model">
+    ## GLB export
+
+    Click **Export GLB** in the top toolbar to download your medal as a binary glTF file.
+
+    Under the hood, Medal Forge calls `buildMedalGroup` to construct the Three.js scene graph from your SVG and settings, then passes the result to Three.js `GLTFExporter` with `{ binary: true }`. The output file is named after your SVG:
+
+    ```
+    my-medal.glb
+    ```
+
+    The GLB contains all visible, non-deleted layers with their materials and geometry baked in. You can open it in:
+
+    - **Blender** — File → Import → glTF 2.0
+    - **Unity** — drag into the Assets panel
+    - **Unreal Engine** — import via Content Browser
+    - **Three.js / React Three Fiber** — load with `GLTFLoader` or `useGLTF`
+    - Any glTF-compatible model viewer
+
+    <Warning>
+      GLB export runs entirely in the browser. Very complex models with many layers or high tessellation settings may take a moment to process before the download begins.
+    </Warning>
+  </Tab>
+  <Tab title="Work JSON">
+    ## Work JSON export
+
+    Click the **JSON** button (the file icon) in the toolbar to download a complete archive of your work.
+
+    The exported file is named:
+
+    ```
+    my-medal.medal-forge.json
+    ```
+
+    The file follows the `WorkDocumentV1` schema and contains:
+
+    - The full original SVG source
+    - All layer settings (material, color, thickness, bevel, z-offset, etc.)
+    - Dome and canvas settings
+    - A PNG preview snapshot embedded as a data URL (if one has been generated)
+    - Metadata including creation and update timestamps
+
+    This is the portable archive format. You can import it back into Medal Forge on any device using the upload button on the home screen — no account or sync required.
+  </Tab>
+  <Tab title="Code snippet">
+    ## React/Three.js code snippet
+
+    Use the **Copy code** action to copy a self-contained React component to your clipboard. Paste it into any React project that has `@react-three/fiber` and `@react-three/drei` installed.
+
+    The snippet embeds your current SVG source and settings directly and calls `buildMedalGroup` from Medal Forge's model builder:
+
+    ```tsx
+    import { Canvas } from "@react-three/fiber";
+    import { OrbitControls, Environment } from "@react-three/drei";
+    import { buildMedalGroup } from "./lib/model-builder";
+
+    const svgText = String.raw`...your SVG...`;
+    const settings = { /* your settings */ };
+
+    function MedalModel() {
+      const group = buildMedalGroup(svgText, settings);
+      return <primitive object={group} />;
+    }
+
+    export function MedalCanvas() {
+      return (
+        <Canvas camera={{ position: [0, -7, 5], fov: 38 }}>
+          <ambientLight intensity={0.7} />
+          <directionalLight position={[4, -5, 8]} intensity={2} />
+          <MedalModel />
+          <Environment preset="city" />
+          <OrbitControls makeDefault />
+        </Canvas>
+      );
+    }
+    ```
+
+    The snippet matches the camera position, lighting, and environment preset used in the Medal Forge workbench, so the embedded medal looks identical to what you see in the editor.
+  </Tab>
+</Tabs>
+
+## Bulk export from the home screen
+
+On the home screen, the **download** button exports all of your saved works as a single ZIP archive:
+
+```
+.medal-forge-works-<timestamp>.zip
+```
+
+The archive contains one `.medal-forge.json` file per work plus a `manifest.json` that lists every included work and its metadata. This is useful for backing up your entire library or migrating to a new device.
+
+<Tip>
+  You can import work files back into Medal Forge from the home screen using the **upload** button. It accepts a single `.medal-forge.json` file or a full ZIP archive exported with the bulk download button.
+</Tip>

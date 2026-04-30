@@ -1,0 +1,57 @@
+---
+title: "What is Medal Forge? SVG-to-3D medal workbench"
+description: "Medal Forge converts uploaded SVG files into 3D medal and badge models in the browser. Export GLB, embed React/Three.js, no account required."
+---
+
+Medal Forge is a browser-based workbench that converts uploaded SVG files into 3D medal, badge, and metal plate models. Each SVG shape is parsed into an individual layer that you can extrude, bevel, and texture independently. When you're done, export a GLB file for any 3D pipeline or copy a ready-to-paste React/Three.js component to embed the model directly in your app.
+
+Medal Forge is designed for award design, branded merchandise prototyping, and anyone who needs to visualize flat vector artwork as physical-looking 3D objects without leaving the browser.
+
+## Key features
+
+<CardGroup cols={2}>
+  <Card title="SVG import" icon="file-image">
+    Drag and drop any SVG file onto the workbench or click the **Upload** area. Medal Forge parses every path, rect, and circle into separate, controllable layers.
+  </Card>
+  <Card title="Layer controls" icon="sliders">
+    Select one or more shapes and adjust thickness, bevel, Z-offset, winding mode, and visibility per layer. Multi-select with Cmd/Ctrl-click or range-select with Shift-click.
+  </Card>
+  <Card title="Material presets" icon="paint-brush">
+    Apply one of six built-in material presets — Brushed gold, Aged silver, Blackened steel, Warm copper, White ceramic, or Matte polymer — or override the color freely.
+  </Card>
+  <Card title="GLB export" icon="download">
+    Export a binary GLTF (.glb) file ready for Blender, Unity, Three.js, or any other 3D tool. A React/Three.js code snippet is also available to embed the model in a web app.
+  </Card>
+  <Card title="Local storage" icon="floppy-disk">
+    Works are saved automatically to IndexedDB in the browser. No account or server required. Open, edit, and revisit your works any time from the home screen.
+  </Card>
+  <Card title="React embedding" icon="code">
+    Copy the generated `@react-three/fiber` component snippet to embed your 3D model directly in a React application with no manual setup.
+  </Card>
+</CardGroup>
+
+## How the workbench works
+
+The workbench opens to a three-panel layout:
+
+- **Layers sidebar (left)** — lists every shape parsed from your SVG. Click a shape to select it; use Cmd/Ctrl-click to add more shapes to the selection; Shift-click to select a range. Click the eye icon to toggle visibility.
+- **3D viewport (center)** — renders the live Three.js preview. Orbit, pan, and zoom with your mouse or trackpad. Changes to any setting update the model in real time.
+- **Settings panel (right)** — controls for the selected layer (thickness, bevel, material, color, Z-offset) and global canvas settings (background color, grid, shadows, dome effect).
+
+The toolbar at the top of the viewport contains the **Upload** button for importing a new SVG, the **Export GLB** button, and the **Save** control for returning to the home screen.
+
+## Tech stack
+
+Medal Forge is built on:
+
+- **Next.js 16** and **React 19** for the application shell
+- **Three.js r184**, **@react-three/fiber**, and **@react-three/drei** for 3D rendering
+- **IndexedDB** (via browser-native APIs) for local work persistence
+
+## Next steps
+
+Get your first SVG into the workbench and export a GLB in minutes:
+
+<Card title="Quickstart" icon="rocket" href="/quickstart">
+  Import an SVG, tune your layers, and export a GLB file in under five minutes.
+</Card>

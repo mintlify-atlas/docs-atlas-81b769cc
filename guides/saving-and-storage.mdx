@@ -1,0 +1,67 @@
+---
+title: "Saving works and managing local storage in Medal Forge"
+description: "Medal Forge auto-saves to browser IndexedDB — no account needed. Learn how auto-save, manual save, snapshots, and workspace import/export work."
+---
+
+Medal Forge stores all your works directly in the browser's [IndexedDB](https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API) — no account or server required. Everything you create lives in your browser under the `medal-forge-workspace` database.
+
+## Auto-save behavior
+
+Medal Forge auto-saves in the background so you rarely need to think about it.
+
+- After any change, Medal Forge waits ~2 seconds of idle time before writing to storage.
+- A spinning save indicator appears in the top toolbar while a save is in progress.
+- Once your work is up to date, the **Save** button shows a checkmark and the label **Saved**.
+- When there are unsaved changes, the button reverts to **Save**.
+
+The auto-save runs quietly — it does not update the status bar message the way a manual save does.
+
+## Manual save
+
+Click the **Save** button in the top bar, or press **Cmd+S** (macOS) / **Ctrl+S** (Windows/Linux), to save immediately without waiting for the idle timer.
+
+## Work snapshots
+
+Every time your work is saved, Medal Forge renders a 320×320 PNG thumbnail of the current 3D model from a fixed front-facing angle. This snapshot is stored alongside the work document and displayed on the home screen work cards. The snapshot is regenerated automatically whenever the SVG source or scene settings change.
+
+## The home screen
+
+The home screen displays all your saved works as cards arranged on an infinite canvas in a spiral layout. You can pan the canvas by dragging and zoom with the scroll wheel or a pinch gesture.
+
+<Tip>
+  Click the cube icon in the home screen toolbar to enable **live 3D previews** on work cards. When enabled, each card renders an interactive 3D model — drag a card to rotate the model in real time.
+</Tip>
+
+## Renaming works
+
+You can rename a work in two ways:
+
+- **In the editor**: click the work title in the top bar to edit it inline. Press **Enter** to confirm or **Escape** to cancel.
+- **From the home screen**: open the **...** menu on a work card and choose **Rename**.
+
+## Deleting works
+
+To delete a work, open the **...** menu on its home screen card and choose **Delete**. You will be asked to confirm before the work is permanently removed from storage.
+
+## Import and export
+
+<CardGroup cols={2}>
+  <Card title="Export all works" icon="download">
+    Click the download icon in the home screen toolbar. Medal Forge packages every work as an individual JSON file and bundles them into a ZIP archive named `medal-forge-works-<timestamp>.zip`. Any works that are missing a snapshot have one generated before the export completes.
+  </Card>
+  <Card title="Import works" icon="upload">
+    Click the upload icon to import. You can select one or more `.medal-forge.json` files, or a ZIP archive previously exported from Medal Forge. Files that fail validation are skipped and a count of imported vs. skipped files is shown.
+  </Card>
+</CardGroup>
+
+### Import Showcase
+
+If you have fewer than 2 saved works, an **Import Showcase** card appears on the home screen. Clicking it fetches a curated set of example works from `/api/showcase` and imports them into your workspace so you can explore Medal Forge right away.
+
+## Storage limits
+
+IndexedDB storage is governed by your browser's quota, which varies by browser and device. Works with very large or complex SVGs (many paths, detailed geometry) will use more space. If the browser rejects a write, the save will fail silently with a status message.
+
+<Warning>
+  Clearing your browser's site data or storage will permanently delete all saved works. Export your works as a JSON/ZIP backup before clearing browser data.
+</Warning>
